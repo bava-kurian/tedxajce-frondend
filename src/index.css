@@ -355,10 +355,96 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: 500px;
   margin: 0 auto var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(30, 30, 30, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 10px;
+}
+
+#reader {
+  border: none !important;
   border-radius: var(--radius-md);
   overflow: hidden;
+}
+
+#reader button {
+  background-color: var(--color-tedx-red);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+  transition: all var(--transition-fast);
+}
+
+#reader button:hover {
+  background-color: var(--color-tedx-red-hover);
+}
+
+#reader select {
   background-color: var(--color-black-light);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  font-family: var(--font-primary);
+}
+
+#reader a {
+  color: var(--color-tedx-red) !important;
+  text-decoration: none;
+}
+
+/* Unique Action Buttons */
+.btn-entry {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: #000;
+  border: none;
+}
+.btn-entry:not(:disabled):hover {
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-food {
+  background: linear-gradient(135deg, #f2994a, #f2c94c);
+  color: #000;
+  border: none;
+}
+.btn-food:not(:disabled):hover {
+  box-shadow: 0 4px 15px rgba(242, 153, 74, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-goodies {
+  background: linear-gradient(135deg, #8e2de2, #4a00e0);
+  color: #fff;
+  border: none;
+}
+.btn-goodies:not(:disabled):hover {
+  box-shadow: 0 4px 15px rgba(142, 45, 226, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-scan-next {
+  background: transparent;
+  border: 2px solid var(--color-tedx-red);
+  color: var(--color-tedx-red);
+  max-width: 300px;
+  margin: 0 auto;
+}
+.btn-scan-next:hover {
+  background: var(--color-tedx-red);
+  color: white;
+  box-shadow: 0 4px 15px rgba(235, 0, 40, 0.4);
 }
 
 .action-buttons {

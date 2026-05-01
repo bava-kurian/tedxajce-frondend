@@ -33,6 +33,8 @@ const Scanner = () => {
   }, [scannedCode]);
 
   useEffect(() => {
+    if (scannedCode) return; // Don't initialize if already scanned
+
     // Initialize Scanner
     const scanner = new Html5QrcodeScanner(
       "reader",
@@ -44,14 +46,8 @@ const Scanner = () => {
 
     scanner.render(
       (decodedText) => {
-        // Only update if we are not currently processing and the code is different or we cleared it
-        setScannedCode((prev) => {
-          if (prev !== decodedText) {
-            setAlert(null); // clear old alerts
-            return decodedText;
-          }
-          return prev;
-        });
+        setScannedCode(decodedText);
+        setAlert(null); // clear old alerts
       },
       (error) => {
         // ignore continuous scan errors
@@ -63,7 +59,7 @@ const Scanner = () => {
         scannerRef.current.clear().catch(error => console.error("Failed to clear html5QrcodeScanner. ", error));
       }
     };
-  }, []);
+  }, [scannedCode]);
 
   const handleAction = async (actionType) => {
     const codeToProcess = scannedCode || manualCode;
@@ -120,25 +116,29 @@ const Scanner = () => {
         </div>
       )}
 
-      <div className="scanner-container">
-        <div id="reader"></div>
-      </div>
-
-      <div className="input-group">
-        <label className="input-label">Or Enter Code Manually</label>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="Participant ID" 
-            value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
-          />
-          <button className="btn btn-secondary" onClick={handleManualSubmit} style={{ width: 'auto' }}>
-            Set
-          </button>
+      {!scannedCode && (
+        <div className="scanner-container">
+          <div id="reader"></div>
         </div>
-      </div>
+      )}
+
+      {!scannedCode && (
+        <div className="input-group">
+          <label className="input-label">Or Enter Code Manually</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input 
+              type="text" 
+              className="input-field" 
+              placeholder="Participant ID" 
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+            />
+            <button className="btn btn-secondary" onClick={handleManualSubmit} style={{ width: 'auto' }}>
+              Set
+            </button>
+          </div>
+        </div>
+      )}
 
       {scannedCode && (
         <div className="mb-3 text-center">
@@ -164,27 +164,43 @@ const Scanner = () => {
 
       <div className="action-buttons">
         <button 
-          className="btn btn-primary" 
+          className="btn btn-entry" 
           onClick={() => handleAction('entry')}
           disabled={processing || (!scannedCode && !manualCode)}
         >
           <LogIn size={20} /> Mark Entry
         </button>
         <button 
-          className="btn btn-secondary" 
+          className="btn btn-food" 
           onClick={() => handleAction('food')}
           disabled={processing || (!scannedCode && !manualCode)}
         >
           <Utensils size={20} /> Mark Food
         </button>
         <button 
-          className="btn btn-secondary" 
+          className="btn btn-goodies" 
           onClick={() => handleAction('goodies')}
           disabled={processing || (!scannedCode && !manualCode)}
         >
           <Gift size={20} /> Mark Goodies
         </button>
       </div>
+
+      {scannedCode && (
+        <div className="mt-4 text-center">
+          <button 
+            className="btn btn-scan-next" 
+            onClick={() => {
+              setScannedCode('');
+              setManualCode('');
+              setParticipantDetails(null);
+              setAlert(null);
+            }}
+          >
+            Scan Next Participant
+          </button>
+        </div>
+      )}
 
       {processing && (
         <div className="overlay">
