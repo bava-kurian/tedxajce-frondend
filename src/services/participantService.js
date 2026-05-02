@@ -1,5 +1,46 @@
-import { doc, getDoc, runTransaction } from "firebase/firestore";
+import { doc, getDoc, runTransaction, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+
+let cachedParticipants = null;
+
+export const getAllParticipants = async () => {
+  if (cachedParticipants) return cachedParticipants;
+  
+  try {
+    const querySnapshot = await getDocs(collection(db, "participants"));
+    const participants = [];
+    querySnapshot.forEach((doc) => {
+      participants.push({ id: doc.id, ...doc.data() });
+    });
+    
+    cachedParticipants = participants;
+    return participants;
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+    return [];
+  }
+};
+
+export const searchParticipantsByName = async (searchTerm) => {
+  if (!searchTerm || searchTerm.trim().length < 2) return [];
+  
+  const participants = await getAllParticipants();
+  const term = searchTerm.toLowerCase().trim();
+  
+  const matches = participants.filter(p => p.name && p.name.toLowerCase().includes(term));
+  
+  matches.sort((a, b) => {
+    const aName = a.name.toLowerCase();
+    const bName = b.name.toLowerCase();
+    const aStarts = aName.startsWith(term);
+    const bStarts = bName.startsWith(term);
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    return aName.localeCompare(bName);
+  });
+
+  return matches.slice(0, 5);
+};
 
 export const getParticipantDetails = async (code) => {
   if (!code) throw new Error("Invalid QR Code");

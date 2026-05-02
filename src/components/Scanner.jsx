@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { getParticipantDetails, processParticipant } from '../services/participantService';
-import { CheckCircle, AlertCircle, Info, Utensils, Gift, LogIn } from 'lucide-react';
+import { getParticipantDetails, processParticipant, searchParticipantsByName, getAllParticipants } from '../services/participantService';
+import { CheckCircle, AlertCircle, Info, Utensils, Gift, LogIn, Search } from 'lucide-react';
 
 const Scanner = () => {
   const [processing, setProcessing] = useState(false);
@@ -10,7 +10,36 @@ const Scanner = () => {
   const [manualCode, setManualCode] = useState('');
   const [participantDetails, setParticipantDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [nameSearch, setNameSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const scannerRef = useRef(null);
+
+  // Preload participants on component mount for faster searching
+  useEffect(() => {
+    getAllParticipants().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const doSearch = async () => {
+      if (nameSearch.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      setIsSearching(true);
+      try {
+        const results = await searchParticipantsByName(nameSearch);
+        setSearchResults(results);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    
+    const timeoutId = setTimeout(doSearch, 300); // debounce
+    return () => clearTimeout(timeoutId);
+  }, [nameSearch]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -124,6 +153,47 @@ const Scanner = () => {
 
       {!scannedCode && (
         <div className="input-group">
+          <label className="input-label">Search by Name</label>
+          <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0 8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <Search size={18} className="text-muted" />
+              <input 
+                type="text" 
+                className="input-field" 
+                style={{ border: 'none', background: 'transparent', paddingLeft: 0, boxShadow: 'none' }}
+                placeholder="Search participant name..." 
+                value={nameSearch}
+                onChange={(e) => setNameSearch(e.target.value)}
+              />
+            </div>
+            
+            {searchResults.length > 0 && (
+              <div className="search-results" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                {searchResults.map(p => (
+                  <button 
+                    key={p.id}
+                    className="btn btn-secondary" 
+                    style={{ textAlign: 'left', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      setScannedCode(p.id);
+                      setNameSearch('');
+                      setSearchResults([]);
+                      setAlert({ type: 'info', message: `Selected: ${p.name}` });
+                    }}
+                  >
+                    <span style={{ fontWeight: '500', color: 'white' }}>{p.name}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>{p.id}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {isSearching && <div className="text-muted text-center" style={{ fontSize: '0.8rem', padding: '4px' }}>Searching...</div>}
+            {nameSearch.trim().length >= 2 && searchResults.length === 0 && !isSearching && (
+              <div className="text-muted text-center" style={{ fontSize: '0.8rem', padding: '4px' }}>No matching names found.</div>
+            )}
+          </div>
+
           <label className="input-label">Or Enter Code Manually</label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
